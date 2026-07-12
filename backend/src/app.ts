@@ -7,6 +7,9 @@ import express, {
 import helmet from "helmet";
 import morgan from "morgan";
 import authRouter from "./routes/auth.routes.js";
+import userRouter from "./routes/user.routes.js";
+import { errorMiddleware } from "./middleware/error.middleware.js";
+
 
 const app = express();
 
@@ -32,6 +35,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 });
 
 app.use("/api/auth", authRouter);
+app.use("/api/users", userRouter);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
@@ -40,6 +44,8 @@ app.use((_req: Request, res: Response) => {
   });
 });
 
-import { errorMiddleware } from "./middleware/error.middleware.js";
+
+
 app.use(errorMiddleware);
+
 export default app;
