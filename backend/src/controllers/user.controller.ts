@@ -1,8 +1,13 @@
 import type { Request, Response } from "express";
 import { UserRole } from "../generated/prisma/client.js";
-import { findUsers } from "../services/user.service.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { createUserSchema } from "../validators/user.validator.js";
+import { ApiError } from "../utils/ApiError.js";
+import {
+  createUser,
+  findUsers,
+} from "../services/user.service.js";
 
 export const getUsers = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -56,6 +61,36 @@ export const getUsers = asyncHandler(
         "Users retrieved successfully",
         result,
       ),
+    );
+  },
+);
+
+export const createNewUser = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const validationResult = createUserSchema.safeParse(req.body);
+
+    if (!validationResult.success) {
+      throw new ApiError(
+        400,
+        validationResult.error.issues
+          .map((issue) => issue.message)
+          .join(", "),
+      );
+    }
+
+    if (!req.user) {
+      throw new ApiError(401, "Authentication is required");
+    }
+
+    const user = await createUser(
+      validationResult.data,
+      req.user.id,
+    );
+
+    res.status(201).json(
+      new ApiResponse("User created successfully", {
+        user,
+      }),
     );
   },
 );
