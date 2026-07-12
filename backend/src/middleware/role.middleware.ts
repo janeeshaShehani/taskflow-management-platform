@@ -11,6 +11,12 @@ export function authorizeRoles(...allowedRoles: UserRole[]) {
     res: Response,
     next: NextFunction,
   ): void => {
+
+    console.log("========== ROLE MIDDLEWARE ==========");
+    console.log("Authenticated User:", req.user);
+    console.log("Allowed Roles:", allowedRoles);
+    console.log("=====================================");
+
     if (!req.user) {
       res.status(401).json({
         success: false,

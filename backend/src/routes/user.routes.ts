@@ -4,7 +4,8 @@ import { authenticate } from "../middleware/auth.middleware.js";
 import { authorizeRoles } from "../middleware/role.middleware.js";
 import {
   createNewUser,
-  getUsers,
+  getUserById,
+  getUsers
 } from "../controllers/user.controller.js";
 
 const userRouter = Router();
@@ -21,6 +22,13 @@ userRouter.post(
   authenticate,
   authorizeRoles(UserRole.ADMIN),
   createNewUser,
+);
+
+userRouter.get(
+  "/:id",
+  authenticate,
+  authorizeRoles(UserRole.ADMIN),
+  getUserById,
 );
 
 export default userRouter;

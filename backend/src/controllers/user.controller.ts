@@ -7,6 +7,7 @@ import { ApiError } from "../utils/ApiError.js";
 import {
   createUser,
   findUsers,
+  findUserById
 } from "../services/user.service.js";
 
 export const getUsers = asyncHandler(
@@ -89,6 +90,24 @@ export const createNewUser = asyncHandler(
 
     res.status(201).json(
       new ApiResponse("User created successfully", {
+        user,
+      }),
+    );
+  },
+);
+
+export const getUserById = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const id = req.params.id;
+
+    if (typeof id !== "string" || id.trim() === "") {
+    throw new ApiError(400, "User ID is required");
+    }
+
+    const user = await findUserById(id);
+
+    res.status(200).json(
+      new ApiResponse("User retrieved successfully", {
         user,
       }),
     );
