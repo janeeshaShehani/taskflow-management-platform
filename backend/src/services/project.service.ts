@@ -1,10 +1,11 @@
 import prisma from "../config/prisma.js";
 import {
+    Prisma,
   UserRole,
   type ProjectStatus,
 } from "../generated/prisma/client.js";
 import { ApiError } from "../utils/ApiError.js";
-import type { CreateProjectInput } from "../validators/project.validator.js";
+import type { CreateProjectInput, GetProjectsQuery } from "../validators/project.validator.js";
 
 interface CreateProjectContext {
   currentUserId: string;
@@ -144,4 +145,109 @@ export async function createProject(
   });
 
   return project;
+}
+
+interface GetProjectsContext {
+  currentUserId: string;
+  currentUserRole: UserRole;
+}
+
+export async function findProjects(
+  query: GetProjectsQuery,
+  context: GetProjectsContext,
+) {
+  const skip = (query.page - 1) * query.limit;
+
+  const where: Prisma.ProjectWhereInput = {};
+
+  if (query.search) {
+    where.OR = [
+      {
+        name: {
+          contains: query.search,
+          mode: "insensitive",
+        },
+      },
+      {
+        code: {
+          contains: query.search,
+          mode: "insensitive",
+        },
+      },
+      {
+        description: {
+          contains: query.search,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
+
+  if (query.status) {
+    where.status = query.status;
+  }
+
+  if (context.currentUserRole === UserRole.PROJECT_MANAGER) {
+    where.managerId = context.currentUserId;
+  }
+
+  if (context.currentUserRole === UserRole.TEAM_MEMBER) {
+    where.members = {
+      some: {
+        userId: context.currentUserId,
+      },
+    };
+  }
+
+  const [projects, total] = await prisma.$transaction([
+    prisma.project.findMany({
+      where,
+      skip,
+      take: query.limit,
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        description: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        createdAt: true,
+        updatedAt: true,
+
+        manager: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+
+        _count: {
+          select: {
+            members: true,
+            tasks: true,
+          },
+        },
+      },
+    }),
+
+    prisma.project.count({
+      where,
+    }),
+  ]);
+
+  return {
+    projects,
+    pagination: {
+      page: query.page,
+      limit: query.limit,
+      total,
+      totalPages: Math.ceil(total / query.limit),
+    },
+  };
 }

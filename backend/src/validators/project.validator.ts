@@ -56,3 +56,27 @@ export const createProjectSchema = z
 export type CreateProjectInput = z.infer<
   typeof createProjectSchema
 >;
+
+export const getProjectsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+
+  limit: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(100)
+    .default(10),
+
+  search: z
+    .string()
+    .trim()
+    .optional(),
+
+  status: z
+    .nativeEnum(ProjectStatus)
+    .optional(),
+});
+
+export type GetProjectsQuery = z.infer<
+  typeof getProjectsQuerySchema
+>;

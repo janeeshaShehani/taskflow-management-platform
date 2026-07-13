@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { UserRole } from "../generated/prisma/client.js";
-import { createNewProject } from "../controllers/project.controller.js";
+import { createNewProject, getProjects, } from "../controllers/project.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { authorizeRoles } from "../middleware/role.middleware.js";
 
@@ -14,6 +14,12 @@ projectRouter.post(
     UserRole.PROJECT_MANAGER,
   ),
   createNewProject,
+);
+
+projectRouter.get(
+  "/",
+  authenticate,
+  getProjects,
 );
 
 export default projectRouter;
