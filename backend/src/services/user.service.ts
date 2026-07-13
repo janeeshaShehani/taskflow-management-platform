@@ -330,3 +330,95 @@ export async function updateUserStatus(
 
   return updatedUser;
 }
+
+export async function deleteUser(
+  userId: string,
+  adminUserId: string,
+) {
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+      managedProjects: {
+        select: {
+          id: true,
+        },
+        take: 1,
+      },
+      createdTasks: {
+        select: {
+          id: true,
+        },
+        take: 1,
+      },
+    },
+  });
+
+  if (!existingUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  if (existingUser.id === adminUserId) {
+    throw new ApiError(
+      400,
+      "You cannot delete your own account",
+    );
+  }
+
+  if (existingUser.role === UserRole.ADMIN) {
+    const adminCount = await prisma.user.count({
+      where: {
+        role: UserRole.ADMIN,
+      },
+    });
+
+    if (adminCount <= 1) {
+      throw new ApiError(
+        400,
+        "The last administrator cannot be deleted",
+      );
+    }
+  }
+
+  if (existingUser.managedProjects.length > 0) {
+    throw new ApiError(
+      409,
+      "This user manages one or more projects. Assign another manager before deleting the user",
+    );
+  }
+
+  if (existingUser.createdTasks.length > 0) {
+    throw new ApiError(
+      409,
+      "This user created one or more tasks and cannot be deleted",
+    );
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.activityLog.create({
+      data: {
+        action: "USER_DELETED",
+        entityType: "USER",
+        entityId: existingUser.id,
+        description: `${existingUser.firstName} ${existingUser.lastName} was deleted`,
+        userId: adminUserId,
+        metadata: {
+          deletedUserEmail: existingUser.email,
+          deletedUserRole: existingUser.role,
+        },
+      },
+    });
+
+    await tx.user.delete({
+      where: {
+        id: userId,
+      },
+    });
+  });
+}

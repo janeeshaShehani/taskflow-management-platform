@@ -8,6 +8,7 @@ import {
   getUsers,
   updateExistingUser,
   updateExistingUserStatus,
+  deleteExistingUser
 } from "../controllers/user.controller.js";
 
 const userRouter = Router();
@@ -47,4 +48,11 @@ userRouter.patch(
   authenticate,
   authorizeRoles(UserRole.ADMIN),
   updateExistingUserStatus,
+);
+
+userRouter.delete(
+  "/:id",
+  authenticate,
+  authorizeRoles(UserRole.ADMIN),
+  deleteExistingUser,
 );

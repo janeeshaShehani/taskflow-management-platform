@@ -10,6 +10,7 @@ import {
   findUserById,
   updateUser,
   updateUserStatus,
+  deleteUser,
   } from "../services/user.service.js";
 
 export const getUsers = asyncHandler(
@@ -189,6 +190,26 @@ export const updateExistingUserStatus = asyncHandler(
           user,
         },
       ),
+    );
+  },
+);
+
+export const deleteExistingUser = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const id = req.params.id;
+
+    if (typeof id !== "string" || id.trim() === "") {
+      throw new ApiError(400, "User ID is required");
+    }
+
+    if (!req.user) {
+      throw new ApiError(401, "Authentication is required");
+    }
+
+    await deleteUser(id, req.user.id);
+
+    res.status(200).json(
+      new ApiResponse("User deleted successfully"),
     );
   },
 );
