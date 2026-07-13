@@ -5,7 +5,7 @@ import {
   type ProjectStatus,
 } from "../generated/prisma/client.js";
 import { ApiError } from "../utils/ApiError.js";
-import type { CreateProjectInput, GetProjectsQuery } from "../validators/project.validator.js";
+import type { CreateProjectInput, GetProjectsQuery, UpdateProjectInput, } from "../validators/project.validator.js";
 
 interface CreateProjectContext {
   currentUserId: string;
@@ -379,4 +379,188 @@ export async function findProjectById(
     taskSummary,
     completionPercentage,
   };
+}
+
+export async function updateProject(
+  projectId: string,
+  input: UpdateProjectInput,
+  context: GetProjectsContext,
+) {
+  const existingProject = await prisma.project.findUnique({
+    where: {
+      id: projectId,
+    },
+  });
+
+  if (!existingProject) {
+    throw new ApiError(404, "Project not found");
+  }
+
+  if (
+    context.currentUserRole === UserRole.PROJECT_MANAGER &&
+    existingProject.managerId !== context.currentUserId
+  ) {
+    throw new ApiError(
+      403,
+      "You can only update projects that you manage",
+    );
+  }
+
+  if (context.currentUserRole === UserRole.TEAM_MEMBER) {
+    throw new ApiError(
+      403,
+      "Team members cannot update projects",
+    );
+  }
+
+  if (
+    input.code &&
+    input.code !== existingProject.code
+  ) {
+    const duplicateProject = await prisma.project.findUnique({
+      where: {
+        code: input.code,
+      },
+    });
+
+    if (duplicateProject) {
+      throw new ApiError(
+        409,
+        "A project with this code already exists",
+      );
+    }
+  }
+
+  let managerId = existingProject.managerId;
+
+  if (input.managerId) {
+    if (context.currentUserRole !== UserRole.ADMIN) {
+      throw new ApiError(
+        403,
+        "Only administrators can change the project manager",
+      );
+    }
+
+    const manager = await prisma.user.findUnique({
+      where: {
+        id: input.managerId,
+      },
+      select: {
+        id: true,
+        role: true,
+        isActive: true,
+      },
+    });
+
+    if (!manager) {
+      throw new ApiError(
+        404,
+        "Selected project manager was not found",
+      );
+    }
+
+    if (!manager.isActive) {
+      throw new ApiError(
+        400,
+        "An inactive user cannot be assigned as project manager",
+      );
+    }
+
+    if (manager.role !== UserRole.PROJECT_MANAGER) {
+      throw new ApiError(
+        400,
+        "The selected user must have the PROJECT_MANAGER role",
+      );
+    }
+
+    managerId = manager.id;
+  }
+
+  const startDate = input.startDate ?? existingProject.startDate;
+  const endDate =
+    input.endDate === undefined
+      ? existingProject.endDate
+      : input.endDate;
+
+  if (endDate && endDate < startDate) {
+    throw new ApiError(
+      400,
+      "End date must be after or equal to the start date",
+    );
+  }
+
+  const updatedProject = await prisma.$transaction(async (tx) => {
+    const project = await tx.project.update({
+      where: {
+        id: projectId,
+      },
+      data: {
+        name: input.name,
+        code: input.code,
+        description: input.description,
+        status: input.status,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        managerId,
+      },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        description: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        createdAt: true,
+        updatedAt: true,
+        manager: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (
+      input.managerId &&
+      input.managerId !== existingProject.managerId
+    ) {
+      await tx.projectMember.upsert({
+        where: {
+          projectId_userId: {
+            projectId,
+            userId: input.managerId,
+          },
+        },
+        update: {},
+        create: {
+          projectId,
+          userId: input.managerId,
+        },
+      });
+    }
+
+    await tx.activityLog.create({
+      data: {
+        action: "PROJECT_UPDATED",
+        entityType: "PROJECT",
+        entityId: project.id,
+        description: `Project ${project.name} was updated`,
+        userId: context.currentUserId,
+        metadata: {
+          updatedFields: Object.keys(input),
+          projectCode: project.code,
+          managerId: project.manager.id,
+        },
+      },
+    });
+
+    return project;
+  });
+
+  return updatedProject;
 }
