@@ -3,7 +3,7 @@ import { UserRole } from "../generated/prisma/client.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { createProject, findProjects, } from "../services/project.service.js";
+import { createProject, findProjects,  findProjectById, } from "../services/project.service.js";
 import { createProjectSchema, getProjectsQuerySchema, } from "../validators/project.validator.js";
 
 export const createNewProject = asyncHandler(
@@ -72,6 +72,34 @@ export const getProjects = asyncHandler(
       new ApiResponse(
         "Projects retrieved successfully",
         result,
+      ),
+    );
+  },
+);
+
+export const getProjectById = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const id = req.params.id;
+
+    if (typeof id !== "string" || id.trim() === "") {
+      throw new ApiError(400, "Project ID is required");
+    }
+
+    if (!req.user) {
+      throw new ApiError(401, "Authentication is required");
+    }
+
+    const project = await findProjectById(id, {
+      currentUserId: req.user.id,
+      currentUserRole: req.user.role,
+    });
+
+    res.status(200).json(
+      new ApiResponse(
+        "Project retrieved successfully",
+        {
+          project,
+        },
       ),
     );
   },

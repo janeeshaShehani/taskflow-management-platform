@@ -251,3 +251,132 @@ export async function findProjects(
     },
   };
 }
+
+export async function findProjectById(
+  projectId: string,
+  context: GetProjectsContext,
+) {
+  const project = await prisma.project.findUnique({
+    where: {
+      id: projectId,
+    },
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      description: true,
+      status: true,
+      startDate: true,
+      endDate: true,
+      createdAt: true,
+      updatedAt: true,
+
+      manager: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          isActive: true,
+        },
+      },
+
+      members: {
+        orderBy: {
+          joinedAt: "asc",
+        },
+        select: {
+          id: true,
+          joinedAt: true,
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+              avatarUrl: true,
+              isActive: true,
+            },
+          },
+        },
+      },
+
+      tasks: {
+        select: {
+          id: true,
+          status: true,
+        },
+      },
+
+      _count: {
+        select: {
+          members: true,
+          tasks: true,
+        },
+      },
+    },
+  });
+
+  if (!project) {
+    throw new ApiError(404, "Project not found");
+  }
+
+  if (
+    context.currentUserRole === UserRole.PROJECT_MANAGER &&
+    project.manager.id !== context.currentUserId
+  ) {
+    throw new ApiError(
+      403,
+      "You do not have permission to view this project",
+    );
+  }
+
+  if (context.currentUserRole === UserRole.TEAM_MEMBER) {
+    const isMember = project.members.some(
+      (membership) =>
+        membership.user.id === context.currentUserId,
+    );
+
+    if (!isMember) {
+      throw new ApiError(
+        403,
+        "You do not have permission to view this project",
+      );
+    }
+  }
+
+  const taskSummary = {
+    total: project.tasks.length,
+    todo: project.tasks.filter(
+      (task) => task.status === "TODO",
+    ).length,
+    inProgress: project.tasks.filter(
+      (task) => task.status === "IN_PROGRESS",
+    ).length,
+    inReview: project.tasks.filter(
+      (task) => task.status === "IN_REVIEW",
+    ).length,
+    completed: project.tasks.filter(
+      (task) => task.status === "COMPLETED",
+    ).length,
+    blocked: project.tasks.filter(
+      (task) => task.status === "BLOCKED",
+    ).length,
+  };
+
+  const completionPercentage =
+    taskSummary.total === 0
+      ? 0
+      : Math.round(
+          (taskSummary.completed / taskSummary.total) * 100,
+        );
+
+  return {
+    ...project,
+    tasks: undefined,
+    taskSummary,
+    completionPercentage,
+  };
+}
