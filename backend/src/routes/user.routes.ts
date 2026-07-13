@@ -7,6 +7,7 @@ import {
   getUserById,
   getUsers,
   updateExistingUser,
+  updateExistingUserStatus,
 } from "../controllers/user.controller.js";
 
 const userRouter = Router();
@@ -40,3 +41,10 @@ userRouter.patch(
 );
 
 export default userRouter;
+
+userRouter.patch(
+  "/:id/status",
+  authenticate,
+  authorizeRoles(UserRole.ADMIN),
+  updateExistingUserStatus,
+);

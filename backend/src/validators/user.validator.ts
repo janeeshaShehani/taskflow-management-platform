@@ -34,6 +34,8 @@ export const createUserSchema = z.object({
   role: z.nativeEnum(UserRole),
 });
 
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+
 export const updateUserSchema = z
   .object({
     firstName: z
@@ -59,11 +61,16 @@ export const updateUserSchema = z
 
     role: z.nativeEnum(UserRole).optional(),
   })
-  .refine(
-    (data) => Object.keys(data).length > 0,
-    {
-      message: "At least one field must be provided",
-    },
-  );
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field must be provided",
+  });
 
-export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+
+export const updateUserStatusSchema = z.object({
+  isActive: z.boolean(),
+});
+
+export type UpdateUserStatusInput = z.infer<
+  typeof updateUserStatusSchema
+>;

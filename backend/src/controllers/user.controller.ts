@@ -2,14 +2,15 @@ import type { Request, Response } from "express";
 import { UserRole } from "../generated/prisma/client.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { createUserSchema, updateUserSchema} from "../validators/user.validator.js";
+import { createUserSchema, updateUserSchema, updateUserStatusSchema} from "../validators/user.validator.js";
 import { ApiError } from "../utils/ApiError.js";
 import {
   createUser,
   findUsers,
   findUserById,
-  updateUser
-} from "../services/user.service.js";
+  updateUser,
+  updateUserStatus,
+  } from "../services/user.service.js";
 
 export const getUsers = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -148,6 +149,46 @@ export const updateExistingUser = asyncHandler(
       new ApiResponse("User updated successfully", {
         user,
       }),
+    );
+  },
+);
+
+export const updateExistingUserStatus = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const id = req.params.id;
+
+    if (typeof id !== "string" || id.trim() === "") {
+      throw new ApiError(400, "User ID is required");
+    }
+
+    const validationResult = updateUserStatusSchema.safeParse(req.body);
+
+    if (!validationResult.success) {
+      throw new ApiError(
+        400,
+        validationResult.error.issues
+          .map((issue) => issue.message)
+          .join(", "),
+      );
+    }
+
+    if (!req.user) {
+      throw new ApiError(401, "Authentication is required");
+    }
+
+    const user = await updateUserStatus(
+      id,
+      validationResult.data,
+      req.user.id,
+    );
+
+    res.status(200).json(
+      new ApiResponse(
+        "User status updated successfully",
+        {
+          user,
+        },
+      ),
     );
   },
 );

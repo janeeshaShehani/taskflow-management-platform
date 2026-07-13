@@ -2,7 +2,7 @@ import { Prisma, UserRole } from "../generated/prisma/client.js";
 import prisma from "../config/prisma.js";
 import bcrypt from "bcryptjs";
 import { ApiError } from "../utils/ApiError.js";
-import type { CreateUserInput, UpdateUserInput } from "../validators/user.validator.js";
+import type { CreateUserInput,  UpdateUserInput, UpdateUserStatusInput } from "../validators/user.validator.js";
 
 export interface GetUsersQuery {
   page: number;
@@ -241,6 +241,86 @@ export async function updateUser(
           updatedFields: Object.keys(input),
           updatedUserEmail: user.email,
           updatedUserRole: user.role,
+        },
+      },
+    });
+
+    return user;
+  });
+
+  return updatedUser;
+}
+
+export async function updateUserStatus(
+  userId: string,
+  input: UpdateUserStatusInput,
+  adminUserId: string,
+) {
+  const existingUser = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!existingUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Prevent admin from deactivating themselves
+  if (
+    existingUser.id === adminUserId &&
+    input.isActive === false
+  ) {
+    throw new ApiError(
+      400,
+      "You cannot deactivate your own account",
+    );
+  }
+
+  // Prevent deactivating the last active admin
+  if (
+    existingUser.role === UserRole.ADMIN &&
+    input.isActive === false
+  ) {
+    const activeAdminCount = await prisma.user.count({
+      where: {
+        role: UserRole.ADMIN,
+        isActive: true,
+      },
+    });
+
+    if (activeAdminCount <= 1) {
+      throw new ApiError(
+        400,
+        "The last active administrator cannot be deactivated",
+      );
+    }
+  }
+
+  const updatedUser = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.update({
+      where: { id: userId },
+      data: {
+        isActive: input.isActive,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        isActive: true,
+        updatedAt: true,
+      },
+    });
+
+    await tx.activityLog.create({
+      data: {
+        action: "USER_STATUS_UPDATED",
+        entityType: "USER",
+        entityId: user.id,
+        description: `${user.firstName} ${user.lastName} status changed`,
+        userId: adminUserId,
+        metadata: {
+          isActive: user.isActive,
         },
       },
     });
