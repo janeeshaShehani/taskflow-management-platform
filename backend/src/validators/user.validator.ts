@@ -34,4 +34,36 @@ export const createUserSchema = z.object({
   role: z.nativeEnum(UserRole),
 });
 
+export const updateUserSchema = z
+  .object({
+    firstName: z
+      .string()
+      .trim()
+      .min(2, "First name must contain at least 2 characters")
+      .max(50, "First name cannot exceed 50 characters")
+      .optional(),
+
+    lastName: z
+      .string()
+      .trim()
+      .min(2, "Last name must contain at least 2 characters")
+      .max(50, "Last name cannot exceed 50 characters")
+      .optional(),
+
+    email: z
+      .string()
+      .trim()
+      .email("Please enter a valid email address")
+      .transform((email) => email.toLowerCase())
+      .optional(),
+
+    role: z.nativeEnum(UserRole).optional(),
+  })
+  .refine(
+    (data) => Object.keys(data).length > 0,
+    {
+      message: "At least one field must be provided",
+    },
+  );
+
 export type CreateUserInput = z.infer<typeof createUserSchema>;

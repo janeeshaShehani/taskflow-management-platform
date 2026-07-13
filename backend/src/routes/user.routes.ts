@@ -5,7 +5,8 @@ import { authorizeRoles } from "../middleware/role.middleware.js";
 import {
   createNewUser,
   getUserById,
-  getUsers
+  getUsers,
+  updateExistingUser,
 } from "../controllers/user.controller.js";
 
 const userRouter = Router();
@@ -29,6 +30,13 @@ userRouter.get(
   authenticate,
   authorizeRoles(UserRole.ADMIN),
   getUserById,
+);
+
+userRouter.patch(
+  "/:id",
+  authenticate,
+  authorizeRoles(UserRole.ADMIN),
+  updateExistingUser,
 );
 
 export default userRouter;

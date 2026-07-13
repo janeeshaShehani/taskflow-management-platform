@@ -2,7 +2,7 @@ import { Prisma, UserRole } from "../generated/prisma/client.js";
 import prisma from "../config/prisma.js";
 import bcrypt from "bcryptjs";
 import { ApiError } from "../utils/ApiError.js";
-import type { CreateUserInput } from "../validators/user.validator.js";
+import type { CreateUserInput, UpdateUserInput } from "../validators/user.validator.js";
 
 export interface GetUsersQuery {
   page: number;
@@ -173,4 +173,80 @@ export async function findUserById(userId: string) {
   }
 
   return user;
+}
+
+export async function updateUser(
+  userId: string,
+  input: UpdateUserInput,
+  adminUserId: string,
+) {
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!existingUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  if (input.email && input.email !== existingUser.email) {
+    const duplicateUser = await prisma.user.findUnique({
+      where: {
+        email: input.email,
+      },
+    });
+
+    if (duplicateUser) {
+      throw new ApiError(
+        409,
+        "A user with this email address already exists",
+      );
+    }
+  }
+
+  const updatedUser = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        firstName: input.firstName,
+        lastName: input.lastName,
+        email: input.email,
+        role: input.role,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        avatarUrl: true,
+        isActive: true,
+        lastLoginAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    await tx.activityLog.create({
+      data: {
+        action: "USER_UPDATED",
+        entityType: "USER",
+        entityId: user.id,
+        description: `${user.firstName} ${user.lastName} was updated`,
+        userId: adminUserId,
+        metadata: {
+          updatedFields: Object.keys(input),
+          updatedUserEmail: user.email,
+          updatedUserRole: user.role,
+        },
+      },
+    });
+
+    return user;
+  });
+
+  return updatedUser;
 }
