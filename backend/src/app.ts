@@ -13,6 +13,7 @@ import projectRouter from "./routes/project.routes.js";
 import taskRouter from "./routes/task.routes.js";
 import dashboardRouter from "./routes/dashboard.routes.js";
 import notificationRouter from "./routes/notification.routes.js";
+import activityRouter from "./routes/activity.routes.js";
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use("/api/projects", projectRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/notifications", notificationRouter);
+app.use("/api/activity", activityRouter);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
