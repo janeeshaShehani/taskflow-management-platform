@@ -128,3 +128,108 @@ export async function assignProjectMember(
 
   return membership;
 }
+
+export async function removeProjectMember(
+  projectId: string,
+  memberUserId: string,
+  context: AssignMemberContext,
+) {
+  const project = await prisma.project.findUnique({
+    where: {
+      id: projectId,
+    },
+    select: {
+      id: true,
+      name: true,
+      managerId: true,
+    },
+  });
+
+  if (!project) {
+    throw new ApiError(404, "Project not found");
+  }
+
+  if (
+    context.currentUserRole === UserRole.PROJECT_MANAGER &&
+    project.managerId !== context.currentUserId
+  ) {
+    throw new ApiError(
+      403,
+      "You can only remove members from projects that you manage",
+    );
+  }
+
+  if (memberUserId === project.managerId) {
+    throw new ApiError(
+      400,
+      "The project manager cannot be removed from the project",
+    );
+  }
+
+  const membership = await prisma.projectMember.findUnique({
+    where: {
+      projectId_userId: {
+        projectId,
+        userId: memberUserId,
+      },
+    },
+    select: {
+      id: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  if (!membership) {
+    throw new ApiError(
+      404,
+      "This user is not a member of the project",
+    );
+  }
+
+  const assignedTaskCount = await prisma.task.count({
+    where: {
+      projectId,
+      assigneeId: memberUserId,
+      status: {
+        not: "COMPLETED",
+      },
+    },
+  });
+
+  if (assignedTaskCount > 0) {
+    throw new ApiError(
+      409,
+      "This member has incomplete assigned tasks. Reassign or complete them before removing the member",
+    );
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.activityLog.create({
+      data: {
+        action: "PROJECT_MEMBER_REMOVED",
+        entityType: "PROJECT_MEMBER",
+        entityId: membership.id,
+        description: `${membership.user.firstName} ${membership.user.lastName} was removed from project ${project.name}`,
+        userId: context.currentUserId,
+        metadata: {
+          projectId,
+          removedUserId: membership.user.id,
+          removedUserEmail: membership.user.email,
+        },
+      },
+    });
+
+    await tx.projectMember.delete({
+      where: {
+        id: membership.id,
+      },
+    });
+  });
+}

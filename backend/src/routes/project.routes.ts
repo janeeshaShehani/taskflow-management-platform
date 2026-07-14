@@ -3,7 +3,7 @@ import { UserRole } from "../generated/prisma/client.js";
 import { createNewProject, getProjects, getProjectById, updateExistingProject,} from "../controllers/project.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { authorizeRoles } from "../middleware/role.middleware.js";
-import { addProjectMember } from "../controllers/project-member.controller.js";
+import { addProjectMember,  deleteProjectMember,} from "../controllers/project-member.controller.js";
 
 const projectRouter = Router();
 
@@ -27,6 +27,16 @@ projectRouter.post(
     UserRole.PROJECT_MANAGER,
   ),
   addProjectMember,
+);
+
+projectRouter.delete(
+  "/:id/members/:userId",
+  authenticate,
+  authorizeRoles(
+    UserRole.ADMIN,
+    UserRole.PROJECT_MANAGER,
+  ),
+  deleteProjectMember,
 );
 
 projectRouter.get("/:id", authenticate, getProjectById);
