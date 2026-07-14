@@ -3,7 +3,7 @@ import { UserRole } from "../generated/prisma/client.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { createProject, findProjects,  findProjectById,  updateProject,} from "../services/project.service.js";
+import { createProject, findProjects,  findProjectById,  updateProject, deleteProject,} from "../services/project.service.js";
 import { createProjectSchema, getProjectsQuerySchema, updateProjectSchema,} from "../validators/project.validator.js";
 
 export const createNewProject = asyncHandler(
@@ -145,6 +145,29 @@ export const updateExistingProject = asyncHandler(
           project,
         },
       ),
+    );
+  },
+);
+
+export const deleteExistingProject = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const id = req.params.id;
+
+    if (typeof id !== "string" || id.trim() === "") {
+      throw new ApiError(400, "Project ID is required");
+    }
+
+    if (!req.user) {
+      throw new ApiError(401, "Authentication is required");
+    }
+
+    await deleteProject(id, {
+      currentUserId: req.user.id,
+      currentUserRole: req.user.role,
+    });
+
+    res.status(200).json(
+      new ApiResponse("Project deleted successfully"),
     );
   },
 );

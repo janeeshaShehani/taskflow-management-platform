@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { UserRole } from "../generated/prisma/client.js";
-import { createNewProject, getProjects, getProjectById, updateExistingProject,} from "../controllers/project.controller.js";
+import { createNewProject, getProjects, getProjectById, updateExistingProject, deleteExistingProject,} from "../controllers/project.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { authorizeRoles } from "../middleware/role.middleware.js";
 import { addProjectMember,  deleteProjectMember,} from "../controllers/project-member.controller.js";
@@ -49,6 +49,16 @@ projectRouter.patch(
     UserRole.PROJECT_MANAGER,
   ),
   updateExistingProject,
+);
+
+projectRouter.delete(
+  "/:id",
+  authenticate,
+  authorizeRoles(
+    UserRole.ADMIN,
+    UserRole.PROJECT_MANAGER,
+  ),
+  deleteExistingProject,
 );
 
 export default projectRouter;

@@ -564,3 +564,76 @@ export async function updateProject(
 
   return updatedProject;
 }
+
+export async function deleteProject(
+  projectId: string,
+  context: GetProjectsContext,
+) {
+  const project = await prisma.project.findUnique({
+    where: {
+      id: projectId,
+    },
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      managerId: true,
+      _count: {
+        select: {
+          tasks: true,
+          members: true,
+        },
+      },
+    },
+  });
+
+  if (!project) {
+    throw new ApiError(404, "Project not found");
+  }
+
+  if (
+    context.currentUserRole === UserRole.PROJECT_MANAGER &&
+    project.managerId !== context.currentUserId
+  ) {
+    throw new ApiError(
+      403,
+      "You can only delete projects that you manage",
+    );
+  }
+
+  if (context.currentUserRole === UserRole.TEAM_MEMBER) {
+    throw new ApiError(
+      403,
+      "Team members cannot delete projects",
+    );
+  }
+
+  if (project._count.tasks > 0) {
+    throw new ApiError(
+      409,
+      "This project contains tasks. Delete or move the tasks before deleting the project",
+    );
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.activityLog.create({
+      data: {
+        action: "PROJECT_DELETED",
+        entityType: "PROJECT",
+        entityId: project.id,
+        description: `Project ${project.name} was deleted`,
+        userId: context.currentUserId,
+        metadata: {
+          projectCode: project.code,
+          memberCount: project._count.members,
+        },
+      },
+    });
+
+    await tx.project.delete({
+      where: {
+        id: projectId,
+      },
+    });
+  });
+}
