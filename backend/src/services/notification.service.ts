@@ -43,3 +43,45 @@ export async function getNotifications(
     notifications,
   };
 }
+
+import { ApiError } from "../utils/ApiError.js";
+
+export async function markNotificationAsRead(
+  notificationId: string,
+  userId: string,
+) {
+  const notification =
+    await prisma.notification.findFirst({
+      where: {
+        id: notificationId,
+        userId,
+      },
+    });
+
+  if (!notification) {
+    throw new ApiError(
+      404,
+      "Notification not found",
+    );
+  }
+
+  if (notification.isRead) {
+    return notification;
+  }
+
+  return prisma.notification.update({
+    where: {
+      id: notificationId,
+    },
+    data: {
+      isRead: true,
+    },
+    select: {
+      id: true,
+      title: true,
+      message: true,
+      isRead: true,
+      createdAt: true,
+    },
+  });
+}
