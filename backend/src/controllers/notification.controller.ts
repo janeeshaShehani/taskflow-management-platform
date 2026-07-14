@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { getNotifications, markNotificationAsRead,} from "../services/notification.service.js";
+import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead,} from "../services/notification.service.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -53,6 +53,28 @@ export const markUserNotificationAsRead = asyncHandler(
         {
           notification,
         },
+      ),
+    );
+  },
+);
+
+export const markAllUserNotificationsAsRead = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    if (!req.user) {
+      throw new ApiError(
+        401,
+        "Authentication is required",
+      );
+    }
+
+    const result = await markAllNotificationsAsRead(
+      req.user.id,
+    );
+
+    res.status(200).json(
+      new ApiResponse(
+        "All notifications marked as read successfully",
+        result,
       ),
     );
   },
