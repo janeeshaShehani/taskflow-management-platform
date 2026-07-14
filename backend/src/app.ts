@@ -11,6 +11,7 @@ import userRouter from "./routes/user.routes.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 import projectRouter from "./routes/project.routes.js";
 import taskRouter from "./routes/task.routes.js";
+import dashboardRouter from "./routes/dashboard.routes.js";
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/tasks", taskRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
