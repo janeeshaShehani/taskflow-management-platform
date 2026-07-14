@@ -98,3 +98,293 @@ export async function getAdminDashboardSummary() {
     },
   };
 }
+
+export async function getManagerDashboardSummary(
+  managerId: string,
+) {
+  const now = new Date();
+
+  const [
+    totalProjects,
+    activeProjects,
+    totalTasks,
+    completedTasks,
+    pendingTasks,
+    overdueTasks,
+    totalMembers,
+    recentTasks,
+  ] = await prisma.$transaction([
+
+    prisma.project.count({
+      where: {
+        managerId,
+      },
+    }),
+
+    prisma.project.count({
+      where: {
+        managerId,
+        status: ProjectStatus.ACTIVE,
+      },
+    }),
+
+    prisma.task.count({
+      where: {
+        project: {
+          managerId,
+        },
+      },
+    }),
+
+    prisma.task.count({
+      where: {
+        project: {
+          managerId,
+        },
+        status: TaskStatus.COMPLETED,
+      },
+    }),
+
+    prisma.task.count({
+      where: {
+        project: {
+          managerId,
+        },
+        status: {
+          in: [
+            TaskStatus.TODO,
+            TaskStatus.IN_PROGRESS,
+            TaskStatus.IN_REVIEW,
+          ],
+        },
+      },
+    }),
+
+    prisma.task.count({
+      where: {
+        project: {
+          managerId,
+        },
+        dueDate: {
+          lt: now,
+        },
+        status: {
+          not: TaskStatus.COMPLETED,
+        },
+      },
+    }),
+
+    prisma.projectMember.count({
+      where: {
+        project: {
+          managerId,
+        },
+      },
+    }),
+
+    prisma.task.findMany({
+      where: {
+        project: {
+          managerId,
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 5,
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        priority: true,
+        dueDate: true,
+
+        project: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+
+        assignee: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    }),
+
+  ]);
+
+  return {
+    projects: {
+      total: totalProjects,
+      active: activeProjects,
+    },
+
+    tasks: {
+      total: totalTasks,
+      completed: completedTasks,
+      pending: pendingTasks,
+      overdue: overdueTasks,
+    },
+
+    teamMembers: totalMembers,
+
+    recentTasks,
+  };
+}
+
+export async function getMemberDashboardSummary(
+  memberId: string,
+) {
+  const now = new Date();
+
+  const [
+    assignedTasks,
+    completedTasks,
+    pendingTasks,
+    overdueTasks,
+    highPriorityTasks,
+    assignedProjects,
+    recentTasks,
+    upcomingTasks,
+  ] = await prisma.$transaction([
+    prisma.task.count({
+      where: {
+        assigneeId: memberId,
+      },
+    }),
+
+    prisma.task.count({
+      where: {
+        assigneeId: memberId,
+        status: TaskStatus.COMPLETED,
+      },
+    }),
+
+    prisma.task.count({
+      where: {
+        assigneeId: memberId,
+        status: {
+          in: [
+            TaskStatus.TODO,
+            TaskStatus.IN_PROGRESS,
+            TaskStatus.IN_REVIEW,
+            TaskStatus.BLOCKED,
+          ],
+        },
+      },
+    }),
+
+    prisma.task.count({
+      where: {
+        assigneeId: memberId,
+        dueDate: {
+          lt: now,
+        },
+        status: {
+          not: TaskStatus.COMPLETED,
+        },
+      },
+    }),
+
+    prisma.task.count({
+      where: {
+        assigneeId: memberId,
+        priority: {
+          in: ["HIGH", "URGENT"],
+        },
+        status: {
+          not: TaskStatus.COMPLETED,
+        },
+      },
+    }),
+
+    prisma.projectMember.count({
+      where: {
+        userId: memberId,
+      },
+    }),
+
+    prisma.task.findMany({
+      where: {
+        assigneeId: memberId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 5,
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        priority: true,
+        dueDate: true,
+        project: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+      },
+    }),
+
+    prisma.task.findMany({
+      where: {
+        assigneeId: memberId,
+        dueDate: {
+          gte: now,
+        },
+        status: {
+          not: TaskStatus.COMPLETED,
+        },
+      },
+      orderBy: {
+        dueDate: "asc",
+      },
+      take: 5,
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        priority: true,
+        dueDate: true,
+        project: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  const completionPercentage =
+    assignedTasks === 0
+      ? 0
+      : Math.round(
+          (completedTasks / assignedTasks) * 100,
+        );
+
+  return {
+    projects: {
+      assigned: assignedProjects,
+    },
+
+    tasks: {
+      assigned: assignedTasks,
+      completed: completedTasks,
+      pending: pendingTasks,
+      overdue: overdueTasks,
+      highPriority: highPriorityTasks,
+      completionPercentage,
+    },
+
+    recentTasks,
+    upcomingTasks,
+  };
+}
