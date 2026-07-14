@@ -125,12 +125,20 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 - ✅ PostgreSQL
 - ✅ Prisma ORM
 - ✅ Authentication
-- 🔄 User Management
-- ⏳ Project Management
-- ⏳ Task Management
+- ✅ User Management
+- ✅ Project Management
+- ✅ Task Management
 - ⏳ Dashboard
 - ⏳ Notifications
 - ⏳ Deployment
+
+---
+
+| Role                | Email                  | Password      |
+| ------------------- | ---------------------- | ------------- |
+| **Administrator**   | `admin@taskflow.com`   | `Admin@123`   |
+| **Project Manager** | `manager@taskflow.com` | `Manager@123` |
+| **Team Member**     | `member@taskflow.com`  | `Member@123`  |
 
 ---
 
