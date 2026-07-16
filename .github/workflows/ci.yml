@@ -18,7 +18,7 @@ jobs:
         working-directory: backend
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5433/taskflow
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5433/taskflow_db
       JWT_SECRET: github-actions-test-secret
       JWT_EXPIRES_IN: 7d
       NODE_ENV: test
@@ -41,12 +41,12 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/taskflow
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/taskflow_db
 
       - name: Build backend
         run: npm run build
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/taskflow
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/taskflow_db
           JWT_SECRET: github-actions-test-secret
           JWT_EXPIRES_IN: 7d
           NODE_ENV: test
