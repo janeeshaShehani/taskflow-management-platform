@@ -1,136 +1,379 @@
 # 🚀 TaskFlow - Project & Team Task Management Platform
 
-A modern full-stack Project and Team Task Management Platform built using **Next.js**, **Node.js**, **Express.js**, **Prisma**, and **PostgreSQL**.
-
-This application allows organizations to manage projects, assign tasks, monitor progress, and collaborate through role-based access.
+A full-stack Project and Team Task Management Platform built with **Next.js, Node.js, Express, Prisma, and PostgreSQL**. The system allows administrators, project managers, and team members to collaborate efficiently through role-based access control, project management, task assignment, notifications, and activity tracking.
 
 ---
 
-## 📌 Features
+## 📖 Project Overview
 
-### Authentication
+TaskFlow is designed to help organizations manage projects and team tasks in one centralized platform.
+
+The application supports three user roles:
+
+- **System Administrator**
+- **Project Manager**
+- **Team Member**
+
+Each role has different permissions, ensuring secure access to system features.
+
+---
+
+# ✨ Features
+
+## 🔐 Authentication & Authorization
+
 - JWT Authentication
-- Secure Password Hashing (bcrypt)
-- Role-Based Authorization
-- Protected APIs
-
-### Administrator
-- User Management
-- Role Management
-- Project Management
-- Dashboard
-
-### Project Manager
-- Create Projects
-- Assign Team Members
-- Create Tasks
-- Track Project Progress
-
-### Team Member
-- View Assigned Projects
-- View Assigned Tasks
-- Update Task Status
-- Add Comments
+- Secure Login
+- Role-Based Access Control (RBAC)
+- Protected Routes
 
 ---
 
-## 🛠 Tech Stack
+## 👤 User Management (Admin)
 
-### Frontend
+- Create Users
+- Edit Users
+- Activate / Deactivate Users
+- Delete Users
+- Search Users
+- Filter by Role
+- Filter by Status
+
+---
+
+## 📁 Project Management
+
+- Create Projects
+- Edit Projects
+- Delete Projects
+- Search Projects
+- Filter Projects
+- Project Status Management
+
+---
+
+## 👥 Project Members
+
+- Add Team Members to Projects
+- Remove Members
+- View Assigned Members
+
+---
+
+## ✅ Task Management
+
+- Create Tasks
+- Edit Tasks
+- Delete Tasks
+- Assign Tasks
+- Change Task Status
+- Priority Management
+- Due Dates
+
+---
+
+## 🔔 Notifications
+
+- Notification Page
+- Unread Count
+- Task Assignment Notifications
+
+---
+
+## 📊 Dashboard
+
+- Total Users
+- Active Projects
+- Total Tasks
+- Completed Tasks
+- Recent Activity
+
+---
+
+## 📜 Activity Logs
+
+- User Login Activity
+- Task Updates
+- Project Updates
+- System Activity History
+
+---
+
+## 📱 Responsive Design
+
+- Desktop
+- Tablet
+- Mobile
+
+---
+
+# 🛠 Tech Stack
+
+## Frontend
+
 - Next.js
+- React
 - TypeScript
 - Tailwind CSS
-- Axios
-
-### Backend
-- Node.js
-- Express.js
-- Prisma ORM
-- JWT Authentication
-- bcrypt
-
-### Database
-- PostgreSQL
-
-### Tools
-- Prisma Studio
-- Postman
-- GitHub Actions
-- Swagger (Coming Soon)
+- React Query
+- React Hook Form
+- Zod
+- Lucide Icons
 
 ---
 
-## 📁 Project Structure
+## Backend
+
+- Node.js
+- Express.js
+- TypeScript
+- Prisma ORM
+- JWT Authentication
+- Bcrypt
+
+---
+
+## Database
+
+- PostgreSQL
+
+---
+
+## Tools
+
+- Postman
+- Git
+- GitHub
+- VS Code
+
+---
+
+# 📂 Project Structure
 
 ```
-taskflow-management-platform
+taskflow-management-platform/
 │
-├── frontend
-├── backend
-├── docs
+├── frontend/
+│   ├── src/
+│   │   ├── app/
+│   │   ├── components/
+│   │   ├── services/
+│   │   ├── providers/
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   ├── types/
+│   │   └── styles/
+│   │
+│   └── public/
+│
+├── backend/
+│   ├── prisma/
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── middleware/
+│   │   ├── routes/
+│   │   ├── validators/
+│   │   ├── utils/
+│   │   └── types/
+│   │
+│   └── uploads/
+│
 └── README.md
 ```
 
 ---
 
-## 🚀 Installation
+# ⚙️ Installation
 
-### Clone Repository
+## Clone Repository
 
 ```bash
 git clone https://github.com/janeeshaShehani/taskflow-management-platform.git
 ```
 
-### Backend
-
-```bash
-cd backend
-npm install
-npm run dev
 ```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
+cd taskflow-management-platform
 ```
 
 ---
 
-## 🔑 Environment Variables
-
-Backend
+## Backend
 
 ```
-DATABASE_URL=
+cd backend
+npm install
+```
 
-JWT_SECRET=
+Create `.env`
+
+```
+DATABASE_URL=your_postgresql_database_url
+
+JWT_SECRET=your_secret_key
 
 PORT=5000
 ```
 
-Frontend
+Run
 
 ```
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
+npx prisma migrate dev
+
+npm run dev
 ```
 
 ---
 
-## 📌 Current Progress
+## Frontend
 
-- ✅ Project Setup
-- ✅ PostgreSQL
-- ✅ Prisma ORM
-- ✅ Authentication
-- ✅ User Management
-- ✅ Project Management
-- ✅ Task Management
-- ⏳ Dashboard
-- ⏳ Notifications
-- ⏳ Deployment
+```
+cd frontend
+
+npm install
+
+npm run dev
+```
+
+Application
+
+```
+http://localhost:3000
+```
+
+Backend API
+
+```
+http://localhost:5000
+```
+
+---
+
+# 🔗 API Endpoints
+
+## Authentication
+
+| Method | Endpoint | Description |
+|----------|----------------|----------------|
+| POST | /api/auth/login | User Login |
+
+---
+
+## Users
+
+| Method | Endpoint |
+|----------|-------------------------|
+| GET | /api/users |
+| POST | /api/users |
+| PATCH | /api/users/:id |
+| DELETE | /api/users/:id |
+
+---
+
+## Projects
+
+| Method | Endpoint |
+|----------|-----------------------------|
+| GET | /api/projects |
+| POST | /api/projects |
+| PATCH | /api/projects/:id |
+| DELETE | /api/projects/:id |
+
+---
+
+## Project Members
+
+| Method | Endpoint |
+|----------|-----------------------------------------|
+| GET | /api/projects/:id/members |
+| POST | /api/projects/:id/members |
+| DELETE | /api/projects/:id/members/:userId |
+
+---
+
+## Tasks
+
+| Method | Endpoint |
+|----------|----------------------|
+| GET | /api/tasks |
+| POST | /api/tasks |
+| PATCH | /api/tasks/:id |
+| DELETE | /api/tasks/:id |
+
+---
+
+## Notifications
+
+| Method | Endpoint |
+|----------|---------------------------|
+| GET | /api/notifications |
+| PATCH | /api/notifications/read |
+
+---
+
+## Activity
+
+| Method | Endpoint |
+|----------|---------------------|
+| GET | /api/activity |
+
+---
+
+# 📸 Screenshots
+
+Add screenshots here after uploading them to GitHub.
+
+Example:
+
+```
+screenshots/
+
+login.png
+
+dashboard.png
+
+users.png
+
+projects.png
+
+tasks.png
+
+notifications.png
+
+activity.png
+
+mobile-dashboard.png
+```
+
+Then display them like:
+
+```markdown
+## Login
+
+![Login](screenshots/login.png)
+
+## Dashboard
+
+![Dashboard](screenshots/dashboard.png)
+
+## Users
+
+![Users](screenshots/users.png)
+
+## Projects
+
+![Projects](screenshots/projects.png)
+
+## Tasks
+
+![Tasks](screenshots/tasks.png)
+
+## Notifications
+
+![Notifications](screenshots/notifications.png)
+```
+
+---
 
 ---
 
@@ -145,7 +388,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ## 👨‍💻 Developer
 
 Janeesha Shehani
-
 University of Kelaniya
-
 BSc (Hons) Computer Science
+Linkedin    : www.linkedin.com/in/janeesha-divyanjalee-b3a841355
+GitHub      : https://github.com/janeeshaShehani
