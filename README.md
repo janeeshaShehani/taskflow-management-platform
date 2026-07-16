@@ -6,42 +6,68 @@ A full-stack Project and Team Task Management Platform built with **Next.js, Nod
 
 ## 📖 Project Overview
 
-TaskFlow is designed to help organizations manage projects and team tasks in one centralized platform.
+TaskFlow is designed to simplify project and task management by providing a centralized platform for administrators, project managers, and team members.
 
-The application supports three user roles:
+The system includes:
 
-- **System Administrator**
-- **Project Manager**
-- **Team Member**
-
-Each role has different permissions, ensuring secure access to system features.
+- Secure Authentication
+- Role-Based Access Control (RBAC)
+- Project Management
+- Project Member Management
+- Task Management
+- Notifications
+- Activity Logs
+- Responsive Dashboard
 
 ---
+# 👥 User Roles
 
+### Administrator
+
+- Manage users
+- Manage projects
+- Manage project members
+- View dashboard
+- Monitor activities
+
+### Project Manager
+
+- Manage assigned projects
+- Add project members
+- Create and assign tasks
+- Update project information
+
+### Team Member
+
+- View assigned projects
+- View assigned tasks
+- Update task status
+- Receive notifications
+
+---
 # ✨ Features
 
-## 🔐 Authentication & Authorization
+## Authentication
 
 - JWT Authentication
 - Secure Login
-- Role-Based Access Control (RBAC)
 - Protected Routes
+- Password Hashing
 
 ---
 
-## 👤 User Management (Admin)
+## User Management
 
 - Create Users
 - Edit Users
 - Activate / Deactivate Users
 - Delete Users
 - Search Users
-- Filter by Role
-- Filter by Status
+- Filter Users
 
 ---
 
-## 📁 Project Management
+## Project Management
 
 - Create Projects
 - Edit Projects
@@ -52,54 +78,50 @@ Each role has different permissions, ensuring secure access to system features.
 
 ---
 
-## 👥 Project Members
+## Project Members
 
-- Add Team Members to Projects
+- Add Members
 - Remove Members
-- View Assigned Members
+- View Members
 
 ---
-
-## ✅ Task Management
+## Task Management
 
 - Create Tasks
 - Edit Tasks
 - Delete Tasks
 - Assign Tasks
-- Change Task Status
+- Update Status
 - Priority Management
 - Due Dates
 
 ---
 
-## 🔔 Notifications
+## Notifications
 
-- Notification Page
-- Unread Count
 - Task Assignment Notifications
+- Unread Notification Counter
 
 ---
 
-## 📊 Dashboard
+## Activity Logs
 
-- Total Users
-- Active Projects
-- Total Tasks
-- Completed Tasks
-- Recent Activity
+- User Activities
+- Project Activities
+- Task Activities
 
 ---
 
-## 📜 Activity Logs
+## Dashboard
 
-- User Login Activity
-- Task Updates
-- Project Updates
-- System Activity History
+- User Statistics
+- Project Statistics
+- Task Statistics
+- Recent Activities
 
 ---
 
-## 📱 Responsive Design
+## Responsive Design
 
 - Desktop
 - Tablet
@@ -107,7 +129,7 @@ Each role has different permissions, ensuring secure access to system features.
 
 ---
 
-# 🛠 Tech Stack
+# 🛠 Technology Stack
 
 ## Frontend
 
@@ -120,33 +142,25 @@ Each role has different permissions, ensuring secure access to system features.
 - Zod
 - Lucide Icons
 
----
-
 ## Backend
 
 - Node.js
 - Express.js
 - TypeScript
 - Prisma ORM
-- JWT Authentication
+- JWT
 - Bcrypt
-
----
 
 ## Database
 
 - PostgreSQL
 
----
+## Development Tools
 
-## Tools
-
-- Postman
 - Git
 - GitHub
+- Postman
 - VS Code
-
----
 
 # 📂 Project Structure
 
@@ -155,33 +169,24 @@ taskflow-management-platform/
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── app/
-│   │   ├── components/
-│   │   ├── services/
-│   │   ├── providers/
-│   │   ├── hooks/
-│   │   ├── lib/
-│   │   ├── types/
-│   │   └── styles/
-│   │
-│   └── public/
+│   ├── public/
+│   └── .env.example
 │
 ├── backend/
 │   ├── prisma/
 │   ├── src/
-│   │   ├── controllers/
-│   │   ├── services/
-│   │   ├── middleware/
-│   │   ├── routes/
-│   │   ├── validators/
-│   │   ├── utils/
-│   │   └── types/
-│   │
-│   └── uploads/
+│   └── .env.example
+│
+├── docs/
+│   ├── diagrams/
+│   ├── postman/
+│   └── feature-completion-report.md
+│
+├── .github/
+│   └── workflows/
 │
 └── README.md
 ```
-
 ---
 
 # ⚙️ Installation
@@ -189,51 +194,73 @@ taskflow-management-platform/
 ## Clone Repository
 
 ```bash
-git clone https://github.com/janeeshaShehani/taskflow-management-platform.git
-```
+git clone https://github.com/YOUR_USERNAME/taskflow-management-platform.git
 
-```
 cd taskflow-management-platform
 ```
 
 ---
 
-## Backend
+## Backend Setup
 
-```
+```bash
 cd backend
+
 npm install
 ```
 
 Create `.env`
 
-```
-DATABASE_URL=your_postgresql_database_url
-
-JWT_SECRET=your_secret_key
-
+```env
+DATABASE_URL=your_database_url
+JWT_SECRET=your_secret
+JWT_EXPIRES_IN=7d
 PORT=5000
+NODE_ENV=development
+FRONTEND_URL=http://localhost:3000
 ```
 
-Run
+Generate Prisma Client
 
+```bash
+npx prisma generate
 ```
+
+Run migrations
+
+```bash
 npx prisma migrate dev
+```
 
+Start Backend
+
+```bash
 npm run dev
 ```
 
 ---
 
-## Frontend
+## Frontend Setup
 
-```
+```bash
 cd frontend
 
 npm install
+```
 
+Create `.env.local`
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+```
+
+Run Frontend
+
+```bash
 npm run dev
 ```
+
+---
 
 Application
 
@@ -249,20 +276,20 @@ http://localhost:5000
 
 ---
 
-# 🔗 API Endpoints
+# 🔗 REST API
 
 ## Authentication
 
-| Method | Endpoint | Description |
-|----------|----------------|----------------|
-| POST | /api/auth/login | User Login |
+| Method | Endpoint |
+|---------|----------|
+| POST | /api/auth/login |
 
 ---
 
 ## Users
 
 | Method | Endpoint |
-|----------|-------------------------|
+|---------|----------|
 | GET | /api/users |
 | POST | /api/users |
 | PATCH | /api/users/:id |
@@ -273,7 +300,7 @@ http://localhost:5000
 ## Projects
 
 | Method | Endpoint |
-|----------|-----------------------------|
+|---------|----------|
 | GET | /api/projects |
 | POST | /api/projects |
 | PATCH | /api/projects/:id |
@@ -284,7 +311,7 @@ http://localhost:5000
 ## Project Members
 
 | Method | Endpoint |
-|----------|-----------------------------------------|
+|---------|----------|
 | GET | /api/projects/:id/members |
 | POST | /api/projects/:id/members |
 | DELETE | /api/projects/:id/members/:userId |
@@ -294,7 +321,7 @@ http://localhost:5000
 ## Tasks
 
 | Method | Endpoint |
-|----------|----------------------|
+|---------|----------|
 | GET | /api/tasks |
 | POST | /api/tasks |
 | PATCH | /api/tasks/:id |
@@ -305,7 +332,7 @@ http://localhost:5000
 ## Notifications
 
 | Method | Endpoint |
-|----------|---------------------------|
+|---------|----------|
 | GET | /api/notifications |
 | PATCH | /api/notifications/read |
 
@@ -314,66 +341,125 @@ http://localhost:5000
 ## Activity
 
 | Method | Endpoint |
-|----------|---------------------|
+|---------|----------|
 | GET | /api/activity |
+
+---
+
+# 📊 Entity Relationship Diagram
+
+![ER Diagram](docs/diagrams/taskflow-er-diagram.png)
+
+---
+
+# 🎯 Use Case Diagram
+
+![Use Case Diagram](docs/diagrams/taskflow-use-case-diagram.png)
+
+---
+
+# 🏗 System Architecture
+
+![System Architecture](docs/diagrams/taskflow-system-architecture.png)
+
+---
+
+# 📬 API Documentation
+
+The Postman collection is available in:
+
+```
+docs/postman/TaskFlow.postman_collection.json
+```
+
+---
+
+# 📋 Feature Completion Report
+
+Available in:
+
+```
+docs/feature-completion-report.md
+```
+
+---
+
+# 🔄 CI/CD Workflow
+
+GitHub Actions is used for basic Continuous Integration.
+
+The workflow automatically:
+
+- Checks out the repository
+- Installs backend dependencies
+- Generates Prisma Client
+- Builds the backend
+- Installs frontend dependencies
+- Builds the frontend
+
+This validates the project on every push and pull request.
+
+---
+
+# 🤖 AI Tools Used
+
+The following AI tools were used during development:
+
+- ChatGPT
+  - Debugging
+  - Code explanations
+  - Documentation
+  - README preparation
+  - Responsive UI improvements
+  - Diagram planning
+
+- Google Gemini
+  - Alternative implementation suggestions
+
+- Claude
+  - Reviewing implementation ideas and troubleshooting
+
+- Perplexity
+  - Technical research
+
+All AI-generated suggestions were reviewed, tested, and adapted before being integrated into the project.
+
+---
+
+# 🌐 Live Deployment
+
+A live deployment is **not currently available**.
+
+The application can be run locally by following the setup instructions provided above.
 
 ---
 
 # 📸 Screenshots
 
-Add screenshots here after uploading them to GitHub.
+Add screenshots in the `docs/screenshots` folder.
 
 Example:
 
 ```
-screenshots/
+docs/screenshots/
 
 login.png
-
 dashboard.png
-
 users.png
-
 projects.png
-
 tasks.png
-
 notifications.png
-
 activity.png
-
-mobile-dashboard.png
+mobile responsive view.png
 ```
 
-Then display them like:
+Example usage:
 
 ```markdown
-## Login
-
-![Login](screenshots/login.png)
-
 ## Dashboard
 
-![Dashboard](screenshots/dashboard.png)
-
-## Users
-
-![Users](screenshots/users.png)
-
-## Projects
-
-![Projects](screenshots/projects.png)
-
-## Tasks
-
-![Tasks](screenshots/tasks.png)
-
-## Notifications
-
-![Notifications](screenshots/notifications.png)
+![Dashboard](docs/screenshots/dashboard.png)
 ```
-
----
 
 ---
 
@@ -388,7 +474,11 @@ Then display them like:
 ## 👨‍💻 Developer
 
 Janeesha Shehani
+
 University of Kelaniya
+
 BSc (Hons) Computer Science
+
 Linkedin    : www.linkedin.com/in/janeesha-divyanjalee-b3a841355
+
 GitHub      : https://github.com/janeeshaShehani
