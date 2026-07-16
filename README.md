@@ -194,7 +194,7 @@ taskflow-management-platform/
 ## Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/taskflow-management-platform.git
+git clone https://github.com/janeeshaShehani/taskflow-management-platform.git
 
 cd taskflow-management-platform
 ```
@@ -344,23 +344,6 @@ http://localhost:5000
 |---------|----------|
 | GET | /api/activity |
 
----
-
-# 📊 Entity Relationship Diagram
-
-![ER Diagram](docs/diagrams/taskflow-er-diagram.png)
-
----
-
-# 🎯 Use Case Diagram
-
-![Use Case Diagram](docs/diagrams/taskflow-use-case-diagram.png)
-
----
-
-# 🏗 System Architecture
-
-![System Architecture](docs/diagrams/taskflow-system-architecture.png)
 
 ---
 
