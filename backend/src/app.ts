@@ -53,7 +53,14 @@ app.use((_req: Request, res: Response) => {
   });
 });
 
-
+app.use(
+  cors({
+    origin:
+      process.env.FRONTEND_URL ??
+      "http://localhost:3000",
+    credentials: true,
+  }),
+);
 
 app.use(errorMiddleware);
 
