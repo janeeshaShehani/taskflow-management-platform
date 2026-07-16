@@ -15,6 +15,11 @@ jobs:
       run:
         working-directory: backend
 
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/taskflow
+      JWT_SECRET: github-actions-test-secret
+      NODE_ENV: test
+
     steps:
       - uses: actions/checkout@v4
 
