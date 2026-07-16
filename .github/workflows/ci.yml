@@ -33,7 +33,7 @@ jobs:
 
       - name: Create backend environment file
         run: |
-          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5433/taskflow_db" > .env
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/taskflow_db" > .env
           echo "JWT_SECRET=github-actions-test-secret" >> .env
           echo "JWT_EXPIRES_IN=7d" >> .env
           echo "NODE_ENV=test" >> .env
